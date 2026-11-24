@@ -5,6 +5,7 @@ To execute the program:
 > node kibo-insider-lookup.js insiders.csv insider_billing_addresses.csv
 
 Sample output messages of the execution:
+
 ◇ injected env (9) from .env
 Host https://t42004.tp4.mozu.com | tenant 42004 | site 64487
 8423 rows, 7640 unique Insider IDs

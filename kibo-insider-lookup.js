@@ -38,7 +38,7 @@ const SITE_ID = digits(KIBO_SITE_ID);
 
 const OUTPUT_COLUMNS = [
   'Insider ID', 'firstName', 'lastNameOrSurname', 'address1', 'address2',
-  'cityOrTown', 'stateOrProvince', 'postalOrZipCode', 'customerNumber', 'phoneNumber',
+  'cityOrTown', 'stateOrProvince', 'postalOrZipCode', 'customerNumber', 'phoneNumber', 'emailAddress',
 ];
 
 // ---------- CSV helpers ----------
@@ -162,7 +162,9 @@ async function runPool(items, limit, worker) {
         const ext = String(acct.externalId ?? '').trim();
         if (!batch.includes(ext) || results.has(ext)) continue;
         const { billing: c, contacts } = await billingContact(acct);
-        const common = { customerNumber: acct.id, phoneNumber: acct.userName };
+        // Email: account-level emailAddress first, else the billing (or any) contact's email
+        const emailAddress = acct.emailAddress || (c && c.email) || (contacts.find(x => x.email) || {}).email;
+        const common = { customerNumber: acct.id, phoneNumber: acct.userName, emailAddress };
         if (c) {
           const a = c.address || {};
           results.set(ext, {
@@ -201,7 +203,7 @@ async function runPool(items, limit, worker) {
     else if (r.noBilling) noBilling++;
     else found++;
     out.push([id, r.firstName, r.lastNameOrSurname, r.address1, r.address2, r.cityOrTown,
-      r.stateOrProvince, r.postalOrZipCode, r.customerNumber, r.phoneNumber].map(csvCell).join(','));
+      r.stateOrProvince, r.postalOrZipCode, r.customerNumber, r.phoneNumber, r.emailAddress].map(csvCell).join(','));
   }
   fs.writeFileSync(outPath, out.join('\r\n') + '\r\n');
   console.log(`Wrote ${outPath}: ${found} matched, ${noBilling} no billing address, ${missing} missing, ${errored} errored rows (${errors.length} failed batches)`);
